@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "mongodb-com-python"
+version = "0.1.0"
+description = "Banco de Dados Não Relacionais com MongoDB, linguagem Python e biblioteca PyMongo."
+authors = ["Janaína Scher <janainascher@protonmail.com>"]
+readme = "README.md"
+packages = [{include = "mongodb_com_python"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pymongo = "4.3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
