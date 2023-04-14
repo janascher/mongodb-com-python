@@ -30,7 +30,7 @@ class User:
             print(error)
 
     @staticmethod
-    def create_table():
+    def create_colletion():
         """
             Cria a Tabela Users no banco de dados MongoDB.
         """
@@ -40,7 +40,7 @@ class User:
             if "users" in db.list_collection_names():
                 print("A coleção Users já existe!")
                 return
-        
+
             users = db.users
             print("Criando coleção Users...")
             users.create_index([("id", 1)], unique=True)
@@ -49,6 +49,8 @@ class User:
             print("Conexão com o banco de dados fechada.")
         except Exception as error:
             print(f"ERRO: {error}")
+        finally:
+            client.close()
 
     @staticmethod
     def create_user(name, email):
@@ -67,9 +69,58 @@ class User:
             client.close()
             print("Conexão com o banco de dados fechada.")
             return User(new_id, name, email)
-            # return User(result, name, email)
         except Exception as error:
             print(f"ERRO: {error}")
+        finally:
+            client.close()
+
+    @staticmethod
+    def update_user(id, name, email):
+        """
+            Atualiza as informações de um usuário existente no banco de dados MongoDB.
+        """
+        db, client = User.connect()
+
+        try:
+            users = db.users
+
+            result = users.update_one(
+                {"id": id}, {"$set": {"name": name, "email": email}})
+
+            if result.modified_count == 0:
+                print("Nenhum usuário encontrado com o ID fornecido.")
+            else:
+                print("Usuário atualizado com sucesso!")
+                user = users.find_one({"id": id})
+                client.close()
+                return User(user["id"], user["name"], user["email"])
+
+        except Exception as error:
+            print(f"ERRO: {error}")
+            client.close()
+        finally:
+            client.close()
+
+    @staticmethod
+    def delete_user(id):
+        """
+            Exclui um usuário do banco de dados MongoDB.
+        """
+        db, client = User.connect()
+
+        try:
+            users = db.users
+
+            result = users.delete_one({"id": id})
+
+            if result.deleted_count == 0:
+                print(f"Nenhum usuário encontrado com o ID {id}.")
+            else:
+                print("Usuário excluído com sucesso.")
+        except Exception as error:
+            print(f"ERRO: {error}")
+        finally:
+            client.close()
 
     @staticmethod
     def get_all():
@@ -79,7 +130,6 @@ class User:
         db, client = User.connect()
 
         try:
-
             users = db.users.find()
 
             print(f"Resultado da pesquisa:")
@@ -91,24 +141,129 @@ class User:
         except Exception as error:
             print(f"ERRO: {error}")
             client.close()
+        finally:
+            client.close()
+
+    @staticmethod
+    def get_all_with_colletion():
+        """
+            Pesquisa todos os usuários criados no banco de dados MongoDB.
+        """
+        db, client = User.connect()
+
+        try:
+            users = db.users.find()
+
+            all_users = []
+            for user in users:
+                user_with_collection = user
+                user_with_collection["collection"] = "users"
+                all_users.append(user_with_collection)
+
+            print(f"Resultado da pesquisa:")
+            for user in all_users:
+                print(user)
+
+            client.close()
+            return users
+        except Exception as error:
+            print(f"ERRO: {error}")
+            client.close()
+        finally:
+            client.close()
+
+    @staticmethod
+    def get_user_by_id(id):
+        """
+            Pesquisa um usuário pelo ID no banco de dados MongoDB.
+        """
+        db, client = User.connect()
+
+        try:
+            users = db.users
+
+            user = users.find_one({"id": id})
+
+            if user is None:
+                print(f"Nenhum usuário encontrado com o ID {id}.")
+                return None
+            else:
+                print(f"Usuário encontrado: {user}")
+                client.close()
+                return User(user["id"], user["name"], user["email"])
+        except Exception as error:
+            print(f"ERRO: {error}")
+            client.close()
+        finally:
+            client.close()
+
+    @staticmethod
+    def get_user_by_id_with_colletion(id):
+        """
+            Pesquisa um usuário pelo ID no banco de dados MongoDB.
+        """
+        db, client = User.connect()
+
+        try:
+            users = db.users
+            user = users.find_one({"id": id})
+
+            if user is None:
+                print(f"Nenhum usuário encontrado com o ID {id}.")
+                return None
+            else:
+                user["collection"] = "users"
+                print(f"Usuário encontrado: {user}")
+                client.close()
+                return User(user["id"], user["name"], user["email"])
+        except Exception as error:
+            print(f"ERRO: {error}")
+            client.close()
+        finally:
+            client.close()
 
 
 """
     Estabelece a conexão com o banco de dados
 """
-#User.connect()
+# User.connect()
 
 """
-    Cria uma tabela user
+    Cria uma coleção user
 """
-# User.create_table()
+# User.create_colletion()
 
 """
     Cria um usuário
 """
-#User.create_user("Fabio", "fabio@mail.com")
+#User.create_user("Gabriel", "gabi@mail.com")
 
 """
-    Busca todos os usuários com id 
+    Atualiza o usuário criado com ID
 """
-User.get_all()
+#User.update_user(4, "Bento", "bento.silveira@mail.com.br")
+
+"""
+    Deleta um usuário pelo ID
+"""
+#User.delete_user(4)
+
+"""
+    Busca todos os usuários
+"""
+#User.get_all()
+
+"""
+    Busca todos os usuários em suas respectivas coleções
+"""
+# User.get_all_with_colletion()
+
+"""
+    Busca o usuário pelo ID 
+"""
+User.get_user_by_id(4)
+
+"""
+    Busca o usuário pelo ID em sua respectiva coleção
+"""
+# User.get_user_by_id_with_colletion(5)
